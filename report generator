@@ -1,0 +1,44 @@
+import requests
+from fpdf import FPDF
+
+# Replace with your actual OpenWeatherMap API Key
+API_KEY = "your_openweathermap_api_key_here"
+
+# Cities to include in the report
+cities = ["Delhi", "Mumbai", "New York", "Tokyo", "London"]
+
+# Function to fetch weather
+def get_weather(city):
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+    res = requests.get(url)
+    return res.json() if res.status_code == 200 else None
+
+# Create a PDF report
+pdf = FPDF()
+pdf.set_auto_page_break(auto=True, margin=15)
+pdf.add_page()
+pdf.set_font("Arial", 'B', 16)
+pdf.cell(200, 10, "Weather Report", ln=True, align='C')
+
+pdf.set_font("Arial", '', 12)
+
+# Collect and add weather data
+for city in cities:
+    data = get_weather(city)
+    if data:
+        pdf.ln(10)
+        pdf.set_font("Arial", 'B', 14)
+        pdf.cell(200, 10, f"{city}, {data['sys']['country']}", ln=True)
+
+        pdf.set_font("Arial", '', 12)
+        pdf.cell(200, 10, f"Temperature: {data['main']['temp']} °C", ln=True)
+        pdf.cell(200, 10, f"Humidity: {data['main']['humidity']}%", ln=True)
+        pdf.cell(200, 10, f"Wind Speed: {data['wind']['speed']} m/s", ln=True)
+        pdf.cell(200, 10, f"Description: {data['weather'][0]['description'].title()}", ln=True)
+    else:
+        pdf.cell(200, 10, f"{city} - Data not available", ln=True)
+
+# Save the report
+pdf.output("weather_report.pdf")
+
+print("✅ Weather report generated: weather_report.pdf")
